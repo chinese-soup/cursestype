@@ -22,15 +22,15 @@ Note: `curses` is not supported in Windows `cmd.exe`, use Windows Subsystem for 
 
 
 # TODO
-* TODO: keep a dictionary of currently OK chars
-* TODO: don't let user go back a word if he commits it (space) like MonkeyType doesn't
-* TODO: if a user backspaces a green thing (a CORRECT char), make it gray again
-* TODO: Multiline w.move()s
-* TODO: newlines only as text wrapping 
-* TODO: don't count newlines as a character
-* TODO: Menu to change language file etc.
-* TODO: Let user specify a text file to load to type OR just generate words from language files that user selects
-* TODO: Languages other than ANSI english
-* TODO: Language files
-* TODO: Command line parameters
-* TODO: timed gamemode (15s/30s/45s/60s)
+- [ ] keep a dictionary of currently OK chars
+- [ ] don't let user go back a word if he commits it (space) like MonkeyType doesn't
+- [x] if a user backspaces a green thing (a CORRECT char), make it gray again
+- [ ] Multiline w.move()s
+- [ ] newlines only as text wrapping
+- [ ] don't count newlines as a character
+- [ ] Menu to change language file etc.
+- [ ] Let user specify a text file to load to type OR just generate words from language files that user selects
+- [ ] Languages other than ANSI english
+- [ ] Language files
+- [ ] Command line parameters
+- [ ] timed gamemode (15s/30s/45s/60s)
