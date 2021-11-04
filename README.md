@@ -14,12 +14,20 @@ It's built-in and no external dependencies are required.
 
 # Usage
 So far it's just:
+## Start with custom text
 ```bash
 $ chmod +x cursestype.py
 $ ./cursestype.py "The quick brown fox jumped over the lazy dog"
 ```
+## Start with default language:
+```bash
+$ chmod +x cursestype.py
+./cursestype.py
+```
 Note: `curses` is not supported in Windows `cmd.exe`, use Windows Subsystem for Linux.
 
+# Limitations
+* Only supports Latin alphabet languages
 
 # TODO
 - [ ] keep a dictionary of currently OK chars
@@ -30,8 +38,8 @@ Note: `curses` is not supported in Windows `cmd.exe`, use Windows Subsystem for 
 - [ ] don't count newlines as a character
 - [ ] Menu to change language file etc.
 - [ ] Let user specify a text file to load to type OR just generate words from language files that user selects
-- [ ] Languages other than ANSI english
+- [x] Languages other than ANSI english
 - [ ] Language files
 - [ ] Command line parameters
-- [ ] timed gamemode (15s/30s/45s/60s)
-- [ ] Record & replay the run
+- [ ] Timed gamemode (15s/30s/45s/60s)
+- [ ] Record & replay the run (and save replays?)
