@@ -42,6 +42,10 @@ language = "english" # TODO: Customizable
 #    text_str = sys.argv[1]
 #else:
 
+# TODO: CMD line options
+if len(sys.argv) > 1:
+    language = sys.argv[1]
+
 words_list = generate_words_from_wordlist(language, gamemode_additional)
 if words_list:
     gamemode = f"words ({gamemode_additional})"
@@ -123,15 +127,19 @@ def curses_main(w):
     # TODO: Shitty wordwrap here, won't work if user changes terminal size
     line = []
     lines_dict = []
+    length = 0
 
-    import math
     for x, i in enumerate(words_list):
         line.append(i)
-        if len(line) == math.floor(len(words_list) / (len(words_list) / 3)):
+        length += len(i)
+        #if length > maxx - len(i):
+        if len(line) == 3:
+            length = 0
             lines_dict.append(" ".join(line) + " ") # Add a space!
             line = []
 
-    lines_dict[ len(lines_dict)-1 ] = lines_dict[-1:][0][:-1] # HACK: Remove space at the end of last line
+    if len(lines_dict) > 1:
+        lines_dict[ len(lines_dict)-1 ] = lines_dict[-1:][0][:-1] # HACK: Remove space at the end of last line
 
     text = lines_dict
 
@@ -154,8 +162,6 @@ def curses_main(w):
 
     status_win.box()  # Rebox because we cleared to EOL
     status_win.refresh()
-
-    curses.curs_set(False)
 
     """+
     curses.curs_set(True)
@@ -209,14 +215,13 @@ def curses_main(w):
         char_key = key
         is_string = False
 
+        curses.curs_set(True)
         # Did we get a string from get_wide_char?
         if isinstance(key, str):
             is_string = True
 
         if char_key == text[index_y][index]:  # CORRECT, the letter user pressed was the next letter
             # TODO: - keep a dictionary of currently OK chars
-            # TODO: - don't let user go back a word if he commits it (space) like MonkeyType doesn't
-            # TODO: - if a user backspaces a green thing (a CORRECT char), make it gray again
             # TODO: Multiline w.move()s
             w.addstr(char_key, curses.color_pair(2))
             w.refresh()
@@ -274,16 +279,12 @@ def curses_main(w):
         # Save current cursor position (after character has been typed)
         current_cursor_pos = w.getyx()
 
-        #win.move(0, 0)
-        #win.clrtoeol()
-
-        # win.border(65, 66, 67, 68, 69, 70, 71)
-        #win.box('|', '-')
-
         # First status line
         # TODO: status_window_update()
-        # TODO: Change status_window to two inlined windows like the result window is
-        status_win.clear()
+        # TODO: Change status_win to two inlined windows like the result window is
+
+        curses.curs_set(False)
+        status_win.erase()
         status_win.move(1, 2)
         status_win.clrtoeol()
         status_win.addstr(f"Timer: {time_taken:.2f} | Current WPM: {((word_count / time_taken) * 60):.2f}")
