@@ -35,7 +35,7 @@ def generate_words(lang, number_of_words):
         return " ".join(words)
 
 gamemode = "custom text" # TODO: Customizable
-gamemode_additional = 15
+gamemode_additional = 2
 language = "czech" # TODO: Customizable
 
 if len(sys.argv) > 1:
@@ -75,19 +75,15 @@ def curses_main(w):
     some of the functionality of curses.
     """
 
-    w.addstr("CursesType v0.1")
-    w.addstr("\n\n")
+    #w.addstr("CursesType v0.1")
+    w.addstr("\n\n\n\n\n\n")
 
     if not curses.has_colors():
         error_exit(w, "Unfortunately your terminal does not support colors, cannot continue.")
 
+    win = curses.newwin(5, 55)
     w.refresh()
 
-    """win = curses.newwin(10, 10)
-    win.border(65, 66, 67, 68,
-               69, 70, 71, 72)
-    win.box('4', '4')
-    win.addstr("AHOJ")"""
 
     w.nodelay(1)
 
@@ -185,11 +181,18 @@ def curses_main(w):
             mistakes += 1
 
         current_cursor_pos = w.getyx()
-        w.move(0, 0)
-        w.clrtoeol()
-        w.addstr(f"Timer: {time_taken:.2f} | Current WPM: {(word_count / time_taken) * 60:.2f} | Mistakes: {mistakes}\n")
-        w.addstr(f"Gamemode: {gamemode} | Language: {language}")
 
+        #win.move(0, 0)
+        #win.clrtoeol()
+
+        # win.border(65, 66, 67, 68, 69, 70, 71)
+        #win.box('|', '-')
+        win.box()
+        win.move(1, 2)
+        win.addstr(f"Timer: {time_taken:.2f} | Current WPM: {(word_count / time_taken) * 60:.2f}")
+        win.move(2, 2)
+        win.addstr(f"Mistakes: {mistakes} | Gamemode: {gamemode} | Language: {language}")
+        win.refresh()
         w.move(current_cursor_pos[0], current_cursor_pos[1])
 
 if __name__ == "__main__":

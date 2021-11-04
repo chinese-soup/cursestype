@@ -34,3 +34,4 @@ Note: `curses` is not supported in Windows `cmd.exe`, use Windows Subsystem for 
 - [ ] Language files
 - [ ] Command line parameters
 - [ ] timed gamemode (15s/30s/45s/60s)
+- [ ] Record & replay the run
