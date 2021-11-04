@@ -91,8 +91,9 @@ def curses_main(w):
     maxy, maxx = w.getmaxyx()
 
     #win = curses.newwin(5, 55)
-    status_win = curses.newwin(5, maxx)
+    status_win = curses.newwin(6, maxx)
 
+    curses.mousemask(curses.ALL_MOUSE_EVENTS | curses.REPORT_MOUSE_POSITION)
     w.refresh()
     w.nodelay(1)
 
@@ -167,8 +168,11 @@ def curses_main(w):
     curses.curs_set(True)
     curses.napms(100)
     """
+    next_time = time.time() + 1
+
     while True:
         curses.napms(1) # nap only for 1 ms so cursor doesn't go all over the place
+        # w.timeout(20)
 
         # We are at the end
         if index == len(text[index_y]) and index_y == len(text) - 1:
@@ -198,15 +202,43 @@ def curses_main(w):
             index = 0
             w.move(current_cursor_pos[0] + 1, 0)
 
+        now_time = time.time()
+        time_taken = now_time - start_ts
+        reset_button_y = 0
+        reset_button_x = 0
+
+        if next_time < now_time and timer_started:
+            next_time = now_time + 1.0
+            current_cursor_pos = w.getyx()
+
+            # First status line
+            # TODO: status_window_update()
+            # TODO: Change status_win to two inlined windows like the result window is
+
+            w.move(current_cursor_pos[0], current_cursor_pos[1])
+
+            status_win.erase()
+            status_win.move(1, 2)
+            status_win.clrtoeol()
+            status_win.addstr(f"Timer: {time_taken:.2f} | Current WPM: {((word_count / (time_taken) ) * 60):.2f}")
+            # Second status line
+            status_win.move(2, 2)
+            status_win.clrtoeol()
+            status_win.addstr(f"Mistakes: {mistakes} | Gamemode: {gamemode} | Language: {language}")
+            status_win.addstr(f"\n  XIndex after: {index} | Curr X: {current_cursor_pos[1]}\n"
+                              f"  YIndex after: {index_y}| Curr Y: {current_cursor_pos[0]} |")
+
+
+
+
+            status_win.box()  # Rebox because we cleared to EOL
+            status_win.refresh()
+
         try: # get_wch doesnt like w.nodelay(1), get_ch likes w.nodelay(1) and returns -1
             key = w.get_wch()
             # key = w.getch()
         except:
             continue
-
-        now_time = time.time()
-        time_taken = now_time - start_ts
-
         # We didn't get any key this "cycle" (this is for get_ch, get_wch is above)
         # if key == -1:
         #    continue
@@ -215,7 +247,7 @@ def curses_main(w):
         char_key = key
         is_string = False
 
-        curses.curs_set(True)
+        #curses.curs_set(False)
         # Did we get a string from get_wide_char?
         if isinstance(key, str):
             is_string = True
@@ -236,13 +268,19 @@ def curses_main(w):
         elif not is_string:
             if key == curses.KEY_RESIZE:
                 pass  # TODO: status_window_update()
+            elif key == curses.KEY_MOUSE:
+                _, x, y, _, button = curses.getmouse()
+                w.addstr(20, 0, 'x, y, button = {}, {}, {}'.format(x, y, button))
+
+                if x == reset_button_x and y == reset_button_y:
+                    w.addstr("HOLY SHIT!")
             elif key == 3:
                 raise KeyboardInterrupt
             else:
                 pass
 
         elif is_string:  # The key pressed is a string, but it isn't what user was supposed to type
-            if ord(key) == 127:  # BACKSPACE
+            if ord(key) == 127:  # BACKSPACE # TODO: Backspace doesn't work when trying to backspace from Y to Y-1 at the beginning of the line
                 if index == 0: # We are at the beginning, don't backspace
                     continue
 
@@ -251,7 +289,9 @@ def curses_main(w):
                 index -= 1
                 w.addstr(text[index_y][index], curses.color_pair(4))  # TODO: make white again
                 w.move(y, x - 1)
-
+            elif ord(key) == 9:  # Tab
+                # Reset?
+                pass
             else:  # WRONG!
                 # Next character to be typed is a space, don't let user skip it by typing anything else than space
                 # TODO: Monkeytype style?:
@@ -282,20 +322,6 @@ def curses_main(w):
         # First status line
         # TODO: status_window_update()
         # TODO: Change status_win to two inlined windows like the result window is
-
-        curses.curs_set(False)
-        status_win.erase()
-        status_win.move(1, 2)
-        status_win.clrtoeol()
-        status_win.addstr(f"Timer: {time_taken:.2f} | Current WPM: {((word_count / time_taken) * 60):.2f}")
-        # Second status line
-        status_win.move(2, 2)
-        status_win.clrtoeol()
-        status_win.addstr(
-            f"Mistakes: {mistakes} | Gamemode: {gamemode} | Language: {language} | Index after: {index} | Current X: {current_cursor_pos[1]}\n Index after: {index_y}| Y: {current_cursor_pos[0]}")
-
-        status_win.box()  # Rebox because we cleared to EOL
-        status_win.refresh()
 
         w.move(current_cursor_pos[0], current_cursor_pos[1])
 
