@@ -23,7 +23,7 @@ import random
 
 L = logging.getLogger()
 
-def generate_words(lang, number_of_words):
+def generate_words_from_wordlist(lang, number_of_words):
     lang_module = importlib.import_module(f"words.{lang}")
     wordlist = lang_module.get_list()
     words = []
@@ -32,24 +32,25 @@ def generate_words(lang, number_of_words):
         words.append(random.choice(wordlist))
 
     if words:
-        return " ".join(words)
+        return words
 
 gamemode = "custom text" # TODO: Customizable
 gamemode_additional = 30
 language = "english" # TODO: Customizable
 
-if len(sys.argv) > 1:
-    text_str = sys.argv[1]
-else:
-    text_str = generate_words(language, gamemode_additional)
-    if text_str:
-        gamemode = f"words ({gamemode_additional})"
-    else:
-        text_str = "The quick brown fox jumps over the lazy dog"
+#if len(sys.argv) > 1:
+#    text_str = sys.argv[1]
+#else:
 
-text = list(text_str)
-words = text_str.split(" ")
-word_count = len(words)
+words_list = generate_words_from_wordlist(language, gamemode_additional)
+if words_list:
+    gamemode = f"words ({gamemode_additional})"
+else:
+    text_str = "The quick brown fox jumps over the lazy dog"
+
+#text = list(text_str)
+#words = text_str.split(" ")
+word_count = len(words_list)
 
 def main():
     """
@@ -120,7 +121,6 @@ def curses_main(w):
     w.move(y - newlines, 0)"""
 
     # TODO: Shitty wordwrap here, won't work if user changes terminal size
-    words_list = text_str.split(" ")
     line = []
     lines_dict = []
 
@@ -155,12 +155,12 @@ def curses_main(w):
     status_win.box()  # Rebox because we cleared to EOL
     status_win.refresh()
 
-    #curses.curs_set(False)
-    """+
-    curses.napms(100)
-    curses.curs_set(True)
-    """
+    curses.curs_set(False)
 
+    """+
+    curses.curs_set(True)
+    curses.napms(100)
+    """
     while True:
         curses.napms(1) # nap only for 1 ms so cursor doesn't go all over the place
 
