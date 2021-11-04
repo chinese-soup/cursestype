@@ -16,6 +16,8 @@ So far it's just:
 $ chmod +x cursestype.py
 $ ./cursestype.py "The quick brown fox jumped over the lazy dog"
 ```
+Note: `curses` is not supported in Windows `cmd.exe`, use Windows Subsystem for Linux.
+
 
 # TODO
 * TODO: keep a dictionary of currently OK chars
@@ -25,8 +27,8 @@ $ ./cursestype.py "The quick brown fox jumped over the lazy dog"
 * TODO: newlines only as text wrapping 
 * TODO: don't count newlines as a character
 * TODO: Menu to change language file etc.
+* TODO: Let user specify a text file to load to type OR just generate words from language files that user selects
 * TODO: Languages other than ANSI english
 * TODO: Language files
 * TODO: Command line parameters
-
-Note: `curses` is not supported in Windows `cmd.exe`, use Windows Subsystem for Linux.
+* TODO: timed gamemode (15s/30s/45s/60s)
