@@ -5,7 +5,7 @@
 * Work in progress.
 
 ## Motivation
-* Just for fun
+* Just for fun & learning about ncurses
 ### Why curses
 It's built-in and no external dependencies are required.
 

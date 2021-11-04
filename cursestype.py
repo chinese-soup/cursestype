@@ -77,14 +77,18 @@ def curses_main(w):
 
     #w.addstr("CursesType v0.1")
     w.addstr("\n\n\n\n\n\n")
+    #w.clrtoeol()
+    #w.clrtobot()
 
     if not curses.has_colors():
         error_exit(w, "Unfortunately your terminal does not support colors, cannot continue.")
 
-    win = curses.newwin(5, 55)
+    maxy, maxx = w.getmaxyx()
+
+    #win = curses.newwin(5, 55)
+    status_win = curses.newwin(5, maxx)
+
     w.refresh()
-
-
     w.nodelay(1)
 
     # TODO: Accuracy
@@ -103,6 +107,7 @@ def curses_main(w):
     curses.init_pair(4, -1, -1)
     curses.init_pair(5, -1, curses.COLOR_BLUE)
 
+    # w.box()
     w.addstr(text_str, curses.color_pair(3))
 
     # TODO: Multiline w.move()s
@@ -119,16 +124,37 @@ def curses_main(w):
     curses.curs_set(True)
     """
 
+    # Draw a dummy status box, because we didn't start the test yet
+    status_win.move(1, 2)
+    status_win.clrtoeol()
+    status_win.addstr(f"Timer: {time_taken:.2f} | Current WPM: 0.00")
+    # Second status line
+    status_win.move(2, 2)
+    status_win.clrtoeol()
+    status_win.addstr(f"Mistakes: {mistakes} | Gamemode: {gamemode} | Language: {language}")
+
+    status_win.box()  # Rebox because we cleared to EOL
+    status_win.refresh()
+
     while True:
+        # We are at the end
         if index == len(text):
-            w.addstr(f"\n\n")
-            w.addstr(f"Result:\n", curses.A_STANDOUT|curses.A_BOLD)
-            w.addstr(f"Time: {time_taken}\n")
+            resultwin_border = curses.newwin(10, 50, current_cursor_pos[0]+2, current_cursor_pos[1]+2)
+            resultwin = resultwin_border.derwin(0, 1)
+
+            resultwin.addstr(f"\n\n")
+            resultwin.addstr(f"Result:\n", curses.A_STANDOUT|curses.A_BOLD)
+            resultwin.addstr(f"Time: {time_taken}\n")
             wpm = (word_count / time_taken) * 60
-            w.addstr(f"Words per minute: {wpm}\n")
-            w.addstr(f"Incorrect characters: {mistakes}\n")
+            resultwin.addstr(f"Words per minute: {wpm}\n")
+            resultwin.addstr(f"Incorrect characters: {mistakes}")
+            resultwin.addstr(f"\nPress any key to quit.")
+            resultwin_border.box()
+            resultwin_border.refresh()
+            resultwin.refresh()
             w.refresh()
-            time.sleep(3)
+            w.nodelay(0)
+            w.get_wch()
             break
 
         try: # get_wch doesnt like w.nodelay(1), get_ch likes w.nodelay(1) and returns -1
@@ -141,11 +167,16 @@ def curses_main(w):
         time_taken = now_time - start_ts
 
         # We didn't get any key this "cycle" (this is for get_ch, get_wch is above)
-        if key == -1:
-             continue
+        # if key == -1:
+        #    continue
 
         #char_key = chr(key)
         char_key = key
+        is_string = False
+
+        # Did we get a string from get_wide_char?
+        if isinstance(key, str):
+            is_string = True
 
         if char_key == text[index]:
             # CORRECT!
@@ -157,29 +188,46 @@ def curses_main(w):
             w.refresh()
             index += 1
 
+            # Start timer if we were correct on first char
             if timer_started == False:
                 start_ts = time.time()
                 time_taken = 0.0001
                 timer_started = True
 
-        elif key == curses.KEY_BACKSPACE or key == 127 or key == "^?" or ord(key) == 127:
-            # BACKSPACE
-            y, x = w.getyx()
-            w.move(y, x-1)
-            index -= 1
-            w.addstr(text[index], curses.color_pair(4))  # TODO: make white again
-            w.move(y, x - 1)
+        elif is_string:
+            if ord(key) == 127:
+                # BACKSPACE
+                y, x = w.getyx()
+                w.move(y, x-1)
+                index -= 1
+                w.addstr(text[index], curses.color_pair(4))  # TODO: make white again
+                w.move(y, x - 1)
 
-        elif key == curses.KEY_ENTER or key == 10:
+            else:
+                # WRONG!
+                if text[index] == " ":
+                    pass
+
+                else:
+                    w.addstr(text[index], curses.color_pair(1))
+                    w.refresh()
+
+                    index += 1
+                    mistakes += 1
+
+                # Start timer if we made a mistake on first char
+                if timer_started == False:
+                    start_ts = time.time()
+                    time_taken = 0.0001
+                    timer_started = True
+
+        elif not is_string:
             pass
 
-        else:
-            # WRONG!
-            w.addstr(text[index], curses.color_pair(1))
-            w.refresh()
-            index += 1
-            mistakes += 1
+        else: # TODO: eh
+            pass
 
+        # Save current cursor position (after character has been typed)
         current_cursor_pos = w.getyx()
 
         #win.move(0, 0)
@@ -187,12 +235,19 @@ def curses_main(w):
 
         # win.border(65, 66, 67, 68, 69, 70, 71)
         #win.box('|', '-')
-        win.box()
-        win.move(1, 2)
-        win.addstr(f"Timer: {time_taken:.2f} | Current WPM: {(word_count / time_taken) * 60:.2f}")
-        win.move(2, 2)
-        win.addstr(f"Mistakes: {mistakes} | Gamemode: {gamemode} | Language: {language}")
-        win.refresh()
+
+        # First status line
+        status_win.move(1, 2)
+        status_win.clrtoeol()
+        status_win.addstr(f"Timer: {time_taken:.2f} | Current WPM: {((word_count / time_taken) * 60):.2f}")
+        # Second status line
+        status_win.move(2, 2)
+        status_win.clrtoeol()
+        status_win.addstr(f"Mistakes: {mistakes} | Gamemode: {gamemode} | Language: {language} | Index after: {index}")
+
+        status_win.box() # Rebox because we cleared to EOL
+        status_win.refresh()
+
         w.move(current_cursor_pos[0], current_cursor_pos[1])
 
 if __name__ == "__main__":
