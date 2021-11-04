@@ -23,7 +23,7 @@ Note: `curses` is not supported in Windows `cmd.exe`, use Windows Subsystem for 
 
 # TODO
 - [ ] keep a dictionary of currently OK chars
-- [ ] don't let user go back a word if he commits it (space) like MonkeyType doesn't
+- [ ] don't let user go back a word if he commits it (space) like MonkeyType doesn't (Confidence mode?)
 - [x] if a user backspaces a green thing (a CORRECT char), make it gray again
 - [ ] Multiline w.move()s
 - [ ] newlines only as text wrapping

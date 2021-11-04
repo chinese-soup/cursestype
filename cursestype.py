@@ -203,11 +203,15 @@ def curses_main(w):
                 w.addstr(text[index], curses.color_pair(4))  # TODO: make white again
                 w.move(y, x - 1)
 
-            else:
-                # WRONG!
+            else:  # WRONG!
+
+                # Next character to be typed is a space, don't let user skip it by typing anything else than space
+                # TODO: Monkeytype style?:
+                # TODO: "first second" -> "first" -> "tttt" -> "firsttttt second" instead of cursor standing still
                 if text[index] == " ":
                     pass
 
+                # We good, next character is anything but space, so user entered wrong char
                 else:
                     w.addstr(text[index], curses.color_pair(1))
                     w.refresh()
@@ -243,7 +247,7 @@ def curses_main(w):
         # Second status line
         status_win.move(2, 2)
         status_win.clrtoeol()
-        status_win.addstr(f"Mistakes: {mistakes} | Gamemode: {gamemode} | Language: {language} | Index after: {index}")
+        status_win.addstr(f"Mistakes: {mistakes} | Gamemode: {gamemode} | Language: {language} | Index after: {index} | Current X: {current_cursor_pos[1]}")
 
         status_win.box() # Rebox because we cleared to EOL
         status_win.refresh()
