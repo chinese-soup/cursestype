@@ -1,11 +1,13 @@
 # Cursestype
 
 ## About
-* A bad [MonkeyType](https://monkeytype.com) (or any generic WPM typing tester app) clone using Python's built-in curses wrapper.
+* A bad [MonkeyType](https://monkeytype.com) (or any generic WPM typing tester app) clone build exclusively using Python's built-in `curses` wrapper.
 * Work in progress.
 
 ## Motivation
 * Just for fun
+### Why curses
+It's built-in and no external dependencies are required.
 
 # Requirements
 * Python > 3.7
