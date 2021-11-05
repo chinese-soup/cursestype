@@ -4,25 +4,23 @@
 * A bad [MonkeyType](https://monkeytype.com) (or any generic WPM typing tester app) clone build exclusively using Python's built-in `curses` wrapper.
 * Work in progress.
 
+### (Obligatory) current state screenshot
+![GIF recording of the program in action](assets/screenshot.gif)
+
 ## Motivation
 * Just for fun & learning about ncurses
-### Why curses
-It's built-in and no external dependencies are required.
 
 ## Requirements
 * Python > 3.7
+### Why `curses`
+* It's built-in and no external dependencies are required.
 
 ## Usage
 So far it's just:
-### Start with custom text
+### Start with language wordlist (stored in words/*.py):
 ```bash
 $ chmod +x cursestype.py
-$ ./cursestype.py "The quick brown fox jumped over the lazy dog"
-```
-### Start with default language:
-```bash
-$ chmod +x cursestype.py
-./cursestype.py
+./cursestype.py czech
 ```
 Note: `curses` is not supported in Windows `cmd.exe`, use Windows Subsystem for Linux.
 
