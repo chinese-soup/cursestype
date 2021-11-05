@@ -282,7 +282,13 @@ def curses_main(w):
         elif is_string:  # The key pressed is a string, but it isn't what user was supposed to type
             if ord(key) == 127:  # BACKSPACE # TODO: Backspace doesn't work when trying to backspace from Y to Y-1 at the beginning of the line
                 if index == 0: # We are at the beginning, don't backspace
-                    continue
+                    if index_y != 0: # We trying to backspace from previous line
+                        w.addstr(text[index_y][index], curses.color_pair(4))  # TODO: make white again
+                        index_y -= 1
+                        index = len(text[index_y])
+                        w.move(current_cursor_pos[0] - 1, index)
+                    else:
+                        continue
 
                 y, x = w.getyx()
                 w.move(y, x-1)
