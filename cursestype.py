@@ -35,7 +35,7 @@ def generate_words_from_wordlist(lang, number_of_words):
         return words
 
 gamemode = "custom text" # TODO: Customizable
-gamemode_additional = 30
+gamemode_additional = 50
 language = "english" # TODO: Customizable
 
 #if len(sys.argv) > 1:
@@ -81,7 +81,7 @@ def curses_main(w):
     """
 
     #w.addstr("CursesType v0.1")
-    w.addstr("\n\n\n\n\n\n")
+    w.addstr("\n\n\n\n\n\n") # TODO: Do properly
     #w.clrtoeol()
     #w.clrtobot()
 
@@ -130,21 +130,23 @@ def curses_main(w):
     lines_dict = []
     length = 0
 
-    for x, i in enumerate(words_list):
-        line.append(i)
-        length += len(i)
-        #if length > maxx - len(i):
-        if len(line) == 3:
-            length = 0
-            lines_dict.append(" ".join(line) + " ") # Add a space!
+    for x, word in enumerate(words_list):
+
+        if length + len(word) + 1 >= maxx:
+            lines_dict.append(" ".join(line) + " ")  # Add a space!
             line = []
+            length = len(word) + 1
+        else:
+            length += len(word) + 1
+
+        line.append(word)
 
     if len(lines_dict) > 1:
         lines_dict[ len(lines_dict)-1 ] = lines_dict[-1:][0][:-1] # HACK: Remove space at the end of last line
 
     text = lines_dict
 
-    for line in lines_dict:
+    for i, line in enumerate(lines_dict):
         w.addstr(f"{line}\n", curses.color_pair(3))
 
     y, x = w.getyx()
@@ -164,10 +166,6 @@ def curses_main(w):
     status_win.box()  # Rebox because we cleared to EOL
     status_win.refresh()
 
-    """+
-    curses.curs_set(True)
-    curses.napms(100)
-    """
     next_time = time.time() + 1
 
     while True:
@@ -196,7 +194,7 @@ def curses_main(w):
             curses.napms(500)
             w.get_wch()
             break
-        # We are at the end of the line
+        # We are at the end of a line but there's more text under this one, move there.
         elif index == len(text[index_y]):
             index_y += 1
             index = 0
@@ -211,12 +209,12 @@ def curses_main(w):
             next_time = now_time + 1.0
             current_cursor_pos = w.getyx()
 
-            # First status line
             # TODO: status_window_update()
             # TODO: Change status_win to two inlined windows like the result window is
 
             w.move(current_cursor_pos[0], current_cursor_pos[1])
-
+            
+            # First status line
             status_win.erase()
             status_win.move(1, 2)
             status_win.clrtoeol()
@@ -226,36 +224,27 @@ def curses_main(w):
             status_win.clrtoeol()
             status_win.addstr(f"Mistakes: {mistakes} | Gamemode: {gamemode} | Language: {language}")
             status_win.addstr(f"\n  XIndex after: {index} | Curr X: {current_cursor_pos[1]}\n"
-                              f"  YIndex after: {index_y}| Curr Y: {current_cursor_pos[0]} |")
-
-
-
+                              f"  YIndex after: {index_y} | Curr Y: {current_cursor_pos[0]} |")
 
             status_win.box()  # Rebox because we cleared to EOL
             status_win.refresh()
 
         try: # get_wch doesnt like w.nodelay(1), get_ch likes w.nodelay(1) and returns -1
             key = w.get_wch()
-            # key = w.getch()
         except:
             continue
-        # We didn't get any key this "cycle" (this is for get_ch, get_wch is above)
-        # if key == -1:
-        #    continue
-
+        
         #char_key = chr(key)
-        char_key = key
         is_string = False
 
-        #curses.curs_set(False)
         # Did we get a string from get_wide_char?
         if isinstance(key, str):
             is_string = True
 
-        if char_key == text[index_y][index]:  # CORRECT, the letter user pressed was the next letter
+        if key == text[index_y][index]:  # CORRECT, the letter user pressed was the next letter
             # TODO: - keep a dictionary of currently OK chars
             # TODO: Multiline w.move()s
-            w.addstr(char_key, curses.color_pair(2))
+            w.addstr(key, curses.color_pair(2))
             w.refresh()
             index += 1
 
@@ -266,6 +255,22 @@ def curses_main(w):
                 timer_started = True
 
         elif not is_string:
+            if key == curses.KEY_BACKSPACE:
+                if index == 0:  # We are at the beginning, don't backspace
+                    if index_y != 0:  # We trying to backspace from previous line
+                        w.addstr(text[index_y][index], curses.color_pair(4))  # TODO: make white again
+                        index_y -= 1
+                        index = len(text[index_y])
+                        w.move(current_cursor_pos[0] - 1, index)
+                    else:
+                        continue
+
+                y, x = w.getyx()
+                w.move(y, x - 1)
+                index -= 1
+                w.addstr(text[index_y][index], curses.color_pair(4))  # TODO: make white again
+                w.move(y, x - 1)
+
             if key == curses.KEY_RESIZE:
                 pass  # TODO: status_window_update()
             elif key == curses.KEY_MOUSE:
@@ -274,12 +279,14 @@ def curses_main(w):
 
                 if x == reset_button_x and y == reset_button_y:
                     w.addstr("HOLY SHIT!")
+
             elif key == 3:
                 raise KeyboardInterrupt
             else:
                 pass
 
         elif is_string:  # The key pressed is a string, but it isn't what user was supposed to type
+
             if ord(key) == 127:  # BACKSPACE # TODO: Backspace doesn't work when trying to backspace from Y to Y-1 at the beginning of the line
                 if index == 0: # We are at the beginning, don't backspace
                     if index_y != 0: # We trying to backspace from previous line
@@ -295,6 +302,7 @@ def curses_main(w):
                 index -= 1
                 w.addstr(text[index_y][index], curses.color_pair(4))  # TODO: make white again
                 w.move(y, x - 1)
+
             elif ord(key) == 9:  # Tab
                 # Reset?
                 pass
@@ -331,7 +339,6 @@ def curses_main(w):
 
         w.move(current_cursor_pos[0], current_cursor_pos[1])
 
-
 def status_window_update(status_win):
     pass
     # TODO: eh
@@ -348,7 +355,6 @@ def status_window_update(status_win):
 
     status_win.box()  # Rebox because we cleared to EOL
     status_win.refresh()
-
 
 if __name__ == "__main__":
     main()
