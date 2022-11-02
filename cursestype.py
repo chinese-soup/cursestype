@@ -24,7 +24,13 @@ import random
 L = logging.getLogger()
 
 def generate_words_from_wordlist(lang, number_of_words):
-    lang_module = importlib.import_module(f"words.{lang}")
+    try:
+        lang_module = importlib.import_module(f"words.{lang}")
+
+    except ModuleNotFoundError:
+        print(f"Module {lang} does not exist.")
+        return
+
     wordlist = lang_module.get_list()
     words = []
 
@@ -35,7 +41,7 @@ def generate_words_from_wordlist(lang, number_of_words):
         return words
 
 gamemode = "custom text" # TODO: Customizable
-gamemode_additional = 50
+gamemode_additional = 22
 language = "english" # TODO: Customizable
 
 #if len(sys.argv) > 1:
@@ -50,7 +56,7 @@ words_list = generate_words_from_wordlist(language, gamemode_additional)
 if words_list:
     gamemode = f"words ({gamemode_additional})"
 else:
-    text_str = "The quick brown fox jumps over the lazy dog"
+    words_list = "The quick brown fox jumps over the lazy dog".split(" ")
 
 #text = list(text_str)
 #words = text_str.split(" ")
@@ -141,8 +147,10 @@ def curses_main(w):
 
         line.append(word)
 
-    if len(lines_dict) > 1:
-        lines_dict[ len(lines_dict)-1 ] = lines_dict[-1:][0][:-1] # HACK: Remove space at the end of last line
+    if len(lines_dict) == 0: # We've had so little words that they all fit on only one line, add the single line
+        lines_dict.append(" ".join(line) + " ")
+
+    lines_dict[ len(lines_dict)-1 ] = lines_dict[-1:][0][:-1] # HACK: Remove space at the end of last line
 
     text = lines_dict
 
@@ -166,7 +174,7 @@ def curses_main(w):
     status_win.box()  # Rebox because we cleared to EOL
     status_win.refresh()
 
-    next_time = time.time() + 1
+    next_time = time.time() + 0.5
 
     while True:
         curses.napms(1) # nap only for 1 ms so cursor doesn't go all over the place
@@ -181,8 +189,11 @@ def curses_main(w):
             resultwin.addstr(f"Time: ", curses.A_BOLD)
             resultwin.addstr(f"{time_taken}\n")
             wpm = (word_count / time_taken) * 60
+            cpm = len(" ".join(words_list)) / time_taken * 60
             resultwin.addstr(f"Words per minute: ", curses.A_BOLD)
             resultwin.addstr(f"{wpm}\n")
+            resultwin.addstr(f"Characters per minute: ", curses.A_BOLD)
+            resultwin.addstr(f"{cpm}\n")
             resultwin.addstr(f"Incorrect characters: ", curses.A_BOLD)
             resultwin.addstr(f"{mistakes}\n")
             resultwin.addstr(f"\nPress any key to quit.")
@@ -194,6 +205,7 @@ def curses_main(w):
             curses.napms(500)
             w.get_wch()
             break
+
         # We are at the end of a line but there's more text under this one, move there.
         elif index == len(text[index_y]):
             index_y += 1
@@ -206,7 +218,7 @@ def curses_main(w):
         reset_button_x = 0
 
         if next_time < now_time and timer_started:
-            next_time = now_time + 1.0
+            next_time = now_time + 0.5 # Only update status window every 0.5 seconds
             current_cursor_pos = w.getyx()
 
             # TODO: status_window_update()
@@ -285,7 +297,7 @@ def curses_main(w):
             else:
                 pass
 
-        elif is_string:  # The key pressed is a string, but it isn't what user was supposed to type
+        elif is_string:  # The key pressed is a string, but it isn't what the user was supposed to type
 
             if ord(key) == 127:  # BACKSPACE # TODO: Backspace doesn't work when trying to backspace from Y to Y-1 at the beginning of the line
                 if index == 0: # We are at the beginning, don't backspace
@@ -324,7 +336,7 @@ def curses_main(w):
                 # Start timer if we made a mistake on first char
                 if timer_started == False:
                     start_ts = time.time()
-                    time_taken = 0.0001
+                    time_taken = 0.00001
                     timer_started = True
 
         else: # TODO: eh
@@ -337,6 +349,7 @@ def curses_main(w):
         # TODO: status_window_update()
         # TODO: Change status_win to two inlined windows like the result window is
 
+        # Move the cursor to the saved current cursor position
         w.move(current_cursor_pos[0], current_cursor_pos[1])
 
 def status_window_update(status_win):
